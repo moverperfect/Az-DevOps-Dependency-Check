@@ -10,6 +10,6 @@
     "software": "Ubuntu",
     "envName": "Environment this ansible is used on (for labelling only)",
     "repo": "Azure DevOps git repository (for labelling only)",
-    "version": "18.04"  Version 
+    "version": "18.04"
   }
 ]
