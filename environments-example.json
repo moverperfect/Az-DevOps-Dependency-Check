@@ -1,0 +1,15 @@
+[
+  {
+    "software": "ansible",
+    "envName": "Environment this ansible is used on (For labelling only)",
+    "project": "The Azure DevOps project to look inside",
+    "repo": "Azure DevOps git repository to look inside",
+    "file_path": "/requirements.txt"
+  },
+  {
+    "software": "Ubuntu",
+    "envName": "Environment this ansible is used on (for labelling only)",
+    "repo": "Azure DevOps git repository (for labelling only)",
+    "version": "18.04"
+  }
+]
