@@ -23,7 +23,7 @@ def get_file_contents(project, repository, file_path):
     :param repository: the name of the repository in the Azure DevOps project
     :param file_path: the path of the file in the repository
     :return: the contents of the file as a string
-    :raise Exception: if the file could not be retrieved,
+    :raise FileNotFoundError: if the file could not be retrieved,
       an exception is raised with a message indicating the reason for failure
     """
     # Construct the URL for the Azure DevOps API request
@@ -35,11 +35,16 @@ def get_file_contents(project, repository, file_path):
     # Encode the username and PAT token for Basic Authentication
     auth = base64.b64encode(f"{username}:{pat_token}".encode()).decode()
     # Send the API request to retrieve the file contents
-    response = requests.get(
-        url,
-        headers={"Authorization": f"Basic {auth}", "Cache-Control": "no-cache"},
-        timeout=10,
-    )
+    try:
+        response = requests.get(
+            url,
+            headers={"Authorization": f"Basic {auth}", "Cache-Control": "no-cache"},
+            timeout=10,
+        )
+    except requests.exceptions.RequestException as exception:
+        raise FileNotFoundError(
+            f"Failed to retrieve {file_path} file. Reason: {str(exception)}"
+        ) from exception
 
     # Check the response status code
     if response.status_code == 200:
@@ -47,7 +52,7 @@ def get_file_contents(project, repository, file_path):
         content = response.text
         return content
     # If the request was unsuccessful, raise an exception
-    raise Exception(
+    raise FileNotFoundError(
         f"Failed to retrieve {file_path} file. Response: {response.content}"
     )
 
@@ -60,8 +65,9 @@ def get_version(software, file_contents):
     Must be either 'ansible' or 'terraform'.
     :param file_contents: The contents of the file to extract the version from.
     :return: The version of the specified software.
-    :raises: Exception if the specified software is unknown or its
-    version could not be found in the file contents.
+    :raises: ValueError if the specified software is unknown.
+    :raises: LookupError if the version of the specified software
+    could not be found in the file contents.
     """
     # Split the contents of the file into lines
     lines = file_contents.splitlines()
@@ -78,7 +84,7 @@ def get_version(software, file_contents):
             return temp_version[0]
 
         # If the version was not found, raise an exception
-        raise Exception("Ansible is not listed in the file.")
+        raise LookupError("Ansible version not found in the file.")
 
     elif software == "terraform":
         # Use a list comprehension to extract the version of Terraform
@@ -93,11 +99,11 @@ def get_version(software, file_contents):
             return temp_version[0]
 
         # If the version was not found, raise an exception
-        raise Exception("terraform Version is not defined in the file.")
+        raise LookupError("Terraform version not found in the file.")
 
     # If the software type is unknown, raise an exception
     else:
-        raise Exception(f"Unknown software: {software}")
+        raise ValueError(f"Unknown software: {software}")
 
 
 def save_to_json(content, file_name):
@@ -116,7 +122,7 @@ if __name__ == "__main__":
     data = []
 
     for env in environments:
-        if not "file_path" in env:
+        if "file_path" not in env:
             data.append(
                 {
                     "dependency": env["software"],
