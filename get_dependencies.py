@@ -86,7 +86,7 @@ def get_version(software, file_contents):
         # If the version was not found, raise an exception
         raise LookupError("Ansible version not found in the file.")
 
-    elif software == "terraform":
+    if software == "terraform":
         # Use a list comprehension to extract the version of Terraform
         temp_version = [
             line.split(": '")[1].strip("'")
@@ -102,8 +102,7 @@ def get_version(software, file_contents):
         raise LookupError("Terraform version not found in the file.")
 
     # If the software type is unknown, raise an exception
-    else:
-        raise ValueError(f"Unknown software: {software}")
+    raise ValueError(f"Unknown software: {software}")
 
 
 def save_to_json(content, file_name):
